@@ -27,7 +27,7 @@ const analyzeMemory = async (text) => {
       Memory: "${text}"
     `;
     const completion = await groq.chat.completions.create({
-      model: "llama3-70b-8192",
+    model: "llama-3.1-8b-instant", 
       messages: [{ role: "user", content: prompt }],
     });
     const output = completion.choices[0].message.content;
@@ -57,7 +57,7 @@ You are EchoMe AI, a highly intelligent and friendly personal AI assistant.
   - Provide complete code in proper code blocks.
   - Include step-by-step explanations.
   - Highlight key steps in numbered lists.
-  - Provide examples where applicable.
+  - Include examples where applicable.
   - Provide copyable code blocks for ease of use.
 - For links, commands, or reference text:
   - Provide them in copyable blocks.
@@ -85,46 +85,49 @@ You are EchoMe AI, a highly intelligent and friendly personal AI assistant.
 - Encourage the user with constructive guidance where appropriate.
 - Include examples, illustrations, or analogies if it aids understanding.
 - Keep messages concise but complete; balance detail with readability.
+- When multiple solutions exist, provide alternatives with pros/cons.
+- Include contextual awareness of the user’s session to make replies relevant.
 `;
 
-// Previous session messages
-let previousMessages = [];
-if (sessionId) {
-  previousMessages = await MemoryEntry.find({ user: userId, sessionId, type: "chat" }).sort({ date: 1 });
-}
 
-const messagesForAI = [
-  { role: "system", content: systemPrompt },
-  ...previousMessages.map(m => ({ role: "user", content: m.message })),
-  { role: "user", content: message }
-];
+    // Previous session messages
+    let previousMessages = [];
+    if (sessionId) {
+      previousMessages = await MemoryEntry.find({ user: userId, sessionId, type: "chat" }).sort({ date: 1 });
+    }
 
-const chatCompletion = await groq.chat.completions.create({
-  model: "llama3-70b-8192",
-  messages: messagesForAI,
-});
+    const messagesForAI = [
+      { role: "system", content: systemPrompt },
+      ...previousMessages.map(m => ({ role: "user", content: m.message })),
+      { role: "user", content: message }
+    ];
 
-const reply = chatCompletion.choices[0].message.content;
+    const chatCompletion = await groq.chat.completions.create({
+      model: "llama-3.1-8b-instant", 
+      messages: messagesForAI,
+    });
 
-let summary = "", emotions = [];
-if (type === "memory") {
-  const analysis = await analyzeMemory(message);
-  summary = analysis.summary;
-  emotions = analysis.emotions;
-}
+    const reply = chatCompletion.choices[0].message.content;
 
-const newEntry = new MemoryEntry({
-  user: userId,
-  message,
-  aiResponse: reply,
-  type,
-  sessionId: sessionId || null,
-  summary,
-  emotions,
-});
+    let summary = "", emotions = [];
+    if (type === "memory") {
+      const analysis = await analyzeMemory(message);
+      summary = analysis.summary;
+      emotions = analysis.emotions;
+    }
 
-await newEntry.save();
-res.json({ reply, entry: newEntry });
+    const newEntry = new MemoryEntry({
+      user: userId,
+      message,
+      aiResponse: reply,
+      type,
+      sessionId: sessionId || null,
+      summary,
+      emotions,
+    });
+
+    await newEntry.save();
+    res.json({ reply, entry: newEntry });
 
   } catch (err) {
     console.error("AI error:", err);
@@ -164,6 +167,4 @@ app.get("/api/chats/:userId/:sessionId", async (req, res) => {
 
 app.get("/", (req, res) => res.send("✅ Server is alive!"));
 
-// ---------- Dynamic port for Replit ----------
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
+app.listen(5000, () => console.log("✅ Server running on http://localhost:5000"));
