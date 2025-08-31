@@ -27,7 +27,7 @@ const analyzeMemory = async (text) => {
       Memory: "${text}"
     `;
     const completion = await groq.chat.completions.create({
-    model: "llama-3.1-8b-instant", 
+      model: "llama-3.1-8b-instant",
       messages: [{ role: "user", content: prompt }],
     });
     const output = completion.choices[0].message.content;
@@ -49,15 +49,15 @@ app.post("/api/message", async (req, res) => {
   if (!userId || !message || !type) return res.status(400).json({ error: "Missing required fields." });
 
   try {
-// ChatGPT-style system prompt
-const systemPrompt = `
+    // ChatGPT-style system prompt
+    const systemPrompt = `
 You are EchoMe AI, a highly intelligent and friendly personal AI assistant.
 - Always answer every question clearly, concisely, and in detail.
 - For coding questions:
   - Provide complete code in proper code blocks.
   - Include step-by-step explanations.
   - Highlight key steps in numbered lists.
-  - Include examples where applicable.
+  - Provide examples where applicable.
   - Provide copyable code blocks for ease of use.
 - For links, commands, or reference text:
   - Provide them in copyable blocks.
@@ -85,10 +85,7 @@ You are EchoMe AI, a highly intelligent and friendly personal AI assistant.
 - Encourage the user with constructive guidance where appropriate.
 - Include examples, illustrations, or analogies if it aids understanding.
 - Keep messages concise but complete; balance detail with readability.
-- When multiple solutions exist, provide alternatives with pros/cons.
-- Include contextual awareness of the user’s session to make replies relevant.
 `;
-
 
     // Previous session messages
     let previousMessages = [];
@@ -103,7 +100,7 @@ You are EchoMe AI, a highly intelligent and friendly personal AI assistant.
     ];
 
     const chatCompletion = await groq.chat.completions.create({
-      model: "llama-3.1-8b-instant", 
+     model: "llama-3.1-8b-instant",
       messages: messagesForAI,
     });
 
@@ -167,4 +164,6 @@ app.get("/api/chats/:userId/:sessionId", async (req, res) => {
 
 app.get("/", (req, res) => res.send("✅ Server is alive!"));
 
-app.listen(5000, () => console.log("✅ Server running on http://localhost:5000"));
+// ---------- Dynamic port for Replit ----------
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
